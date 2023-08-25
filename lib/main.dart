@@ -1,74 +1,154 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const IMCCalculatorApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class IMCCalculatorApp extends StatelessWidget {
+  const IMCCalculatorApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Calculadora de IMC',
+      title: 'IMC Calculator',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+        primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Calculadora de IMC'),
+      home: const InputScreen(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
+class InputScreen extends StatefulWidget {
+  const InputScreen({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<InputScreen> createState() => _InputScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  double _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
+class _InputScreenState extends State<InputScreen> {
+  TextEditingController heightController = TextEditingController();
+  TextEditingController weightController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      appBar: AppBar(
-
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-
-        title: Text(widget.title),
-      ),
-      body: Center(
-
+      appBar: AppBar(title: const Text('Calculadora IMC')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
             const Text(
-              'You have pushed the button this many times:',
+              'Adicione suas informações:',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+            const SizedBox(height: 10),
+            TextField(
+              controller: heightController,
+              decoration: const InputDecoration(labelText: 'Altura (cm)'),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: weightController,
+              decoration: const InputDecoration(labelText: 'Peso (kg)'),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                double height = double.tryParse(heightController.text) ?? 0;
+                double weight = double.tryParse(weightController.text) ?? 0;
+                double imc = calculateIMC(height, weight);
+
+                if (imc.isNaN) {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: const Text('Erro'),
+                        content: const Text(
+                            'O valor do IMC não pôde ser calculado.'),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: const Text('OK'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ResultScreen(imc: imc),
+                    ),
+                  );
+                }
+              },
+              child: const Text('Calculate'),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+
+  double calculateIMC(double height, double weight) {
+    return weight / ((height / 100) * (height / 100));
+  }
+}
+
+class ResultScreen extends StatelessWidget {
+  final double imc;
+
+  const ResultScreen({super.key, required this.imc});
+
+  @override
+  Widget build(BuildContext context) {
+    String resultText = 'IMC ideal';
+    IconData resultIcon = Icons.check;
+    Color resultColor = Colors.green;
+    if (imc < 18.5) {
+      resultText = 'IMC abaixo do ideal';
+      resultIcon = Icons.warning;
+      resultColor = Colors.orange;
+    } else if (imc >= 24.5) {
+      resultText = 'IMC acima do ideal';
+      resultIcon = Icons.error;
+      resultColor = Colors.red;
+    }
+
+    return Scaffold(
+      backgroundColor: resultColor,
+      appBar: AppBar(title: const Text('Result')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(resultIcon, size: 100, color: Colors.white),
+            const SizedBox(height: 20),
+            Text(
+              'Seu imc: ${imc.toStringAsFixed(2)}',
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold),
+            ),
+            Text(
+              resultText,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
