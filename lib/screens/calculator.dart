@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'result.dart';
 
@@ -21,23 +22,29 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text(
               'Adicione suas informações:',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
             TextField(
-              controller: heightController,
-              decoration: const InputDecoration(labelText: 'Altura (cm)'),
-              keyboardType: TextInputType.number,
-            ),
+                controller: heightController,
+                decoration: const InputDecoration(labelText: 'Altura (cm)'),
+                keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true), // Permite números decimais
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                ]),
             TextField(
-              controller: weightController,
-              decoration: const InputDecoration(labelText: 'Peso (kg)'),
-              keyboardType: TextInputType.number,
-            ),
+                controller: weightController,
+                decoration: const InputDecoration(labelText: 'Peso (kg)'),
+                keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true), // Permite números decimais
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                ]),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
@@ -45,7 +52,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                 double weight = double.tryParse(weightController.text) ?? 0;
                 double imc = calculateIMC(height, weight);
 
-                if (imc.isNaN) {
+                if (imc.isNaN || height == 0 || weight == 0) {
                   showDialog(
                     context: context,
                     builder: (context) {
@@ -73,7 +80,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   );
                 }
               },
-              child: const Text('Calculate'),
+              child: const Text('Calcular'),
             ),
           ],
         ),
